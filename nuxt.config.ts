@@ -67,7 +67,7 @@ export default defineNuxtConfig({
     storage: {
       engine: 'local',
       local: {
-        baseDir: './.data',
+        baseDir: './var/lib/vidur/data',
       },
       s3: {
         accessKeyId: '',
@@ -79,7 +79,7 @@ export default defineNuxtConfig({
     },
     bypassAdmin: false, // THIS IS ONLY FOR DEMO INSTANCES / DEV MODE. NOT MEANT TO BE USED AS A FULL FEATURE.
     delayResponse: false, // IT WILL ONLY TAKE EFFECT IN DEV MODE, USEFUL TO DO REALISTIC TESTING.
-    remoteAssetBase: '/assets',
+    remoteAssetBase: 'http://localhost:3001/assets',
     public: {
       origin: 'http://localhost:3001',
       github: 'https://github.com/profilecity/vidur',

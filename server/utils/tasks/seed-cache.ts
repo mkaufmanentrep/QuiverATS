@@ -6,7 +6,14 @@ export async function seedCache() {
   console.log('Seeding Cache');
   const { remoteAssetBase } = useRuntimeConfig();
 
-  const db = await useDatabase();
+  let db;
+  try {
+    db = await useDatabase();
+  } catch (error) {
+    console.error('Failed to connect to database during cache seeding:', error);
+    throw error;
+  }
+  
   const metadataEntries = await db
     .select()
     .from(metaDataTable)
@@ -55,5 +62,6 @@ export async function seedCache() {
     general_memoryStorage.setItem('totalActivePostings', totalActivePostings),
   ]);
 
+  console.log('Cache seeding completed successfully');
   return { result: true };
 }

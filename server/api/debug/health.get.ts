@@ -1,3 +1,5 @@
+import { sql } from 'drizzle-orm';
+
 export default defineEventHandler(async (event) => {
   try {
     // Test database connection
@@ -9,13 +11,25 @@ export default defineEventHandler(async (event) => {
     // Test memory storage
     const memoryTest = await general_memoryStorage.getItem('test') || 'not-found';
     
+    // Test blob storage
+    let storageStatus = 'unknown';
+    try {
+      await blobStorage.setItem('health-test', 'test-data');
+      await blobStorage.removeItem('health-test');
+      storageStatus = 'working';
+    } catch (error) {
+      storageStatus = 'failed';
+    }
+    
     return {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       database: 'connected',
       memory_storage: 'working',
+      blob_storage: storageStatus,
       environment: process.env.NODE_ENV,
       db_host: useRuntimeConfig().db.host,
+      storage_engine: useRuntimeConfig().storage.engine,
     };
   } catch (error) {
     console.error('Health check failed:', error);

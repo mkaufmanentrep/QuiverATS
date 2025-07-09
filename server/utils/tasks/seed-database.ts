@@ -10,7 +10,13 @@ export type SeedFn = (ctx: SeedContext, payload: SeedPayload) => Promise<void> |
 export async function seedDatabase(payload: SeedPayload) {
   console.log('Seeding Database');
 
-  const db = await useDatabase();
+  let db;
+  try {
+    db = await useDatabase();
+  } catch (error) {
+    console.error('Failed to connect to database during seeding:', error);
+    throw error;
+  }
 
   const dbResponse = await db.select().from(metaDataTable).where(eq(metaDataTable.key, 'seedVersion'));
 
@@ -20,6 +26,11 @@ export async function seedDatabase(payload: SeedPayload) {
   console.log('Current Seed Version', currentSeedVersion, 'Total Seed Versions', seeds.length);
 
   let success = true;
+  
+  if (currentSeedVersion >= seeds.length) {
+    console.log('Database already seeded, skipping...');
+    return { result: true };
+  }
 
   await db.transaction(async (tx) => {
     const seedCtx: SeedContext = { db: tx };
@@ -30,6 +41,7 @@ export async function seedDatabase(payload: SeedPayload) {
       console.log('Applying SeedCTX', index + 1);
       try {
         await seedFn(seedCtx, payload);
+        console.log('Successfully applied seed', index + 1);
       } catch (e) {
         console.error('Error applying seed', index, e);
         console.log('Rolling back...');
@@ -40,8 +52,10 @@ export async function seedDatabase(payload: SeedPayload) {
     }
     const updatedSeedVersion = seeds.length.toString();
     if (seedingForFirstTime) {
+      console.log('First time seeding, inserting seed version');
       await tx.insert(metaDataTable).values({ key: 'seedVersion', value: updatedSeedVersion });
     } else {
+      console.log('Updating seed version to', updatedSeedVersion);
       await tx
         .update(metaDataTable)
         .set({ value: updatedSeedVersion, updatedAt: new Date() })
@@ -49,5 +63,6 @@ export async function seedDatabase(payload: SeedPayload) {
     }
   });
 
+  console.log('Database seeding completed with result:', success);
   return { result: success };
 }
