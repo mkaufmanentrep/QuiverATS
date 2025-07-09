@@ -7,6 +7,7 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "dev:debug": "node debug-startup.js",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -19,7 +20,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type:check": "npx nuxi typecheck",
-    "prepare": "husky"
+    "prepare": "husky",
+    "debug:health": "curl -s http://localhost:3001/api/debug/health | jq ."
   },
   "dependencies": {
     "@internationalized/date": "^3.5.6",

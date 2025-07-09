@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:15.1-alpine
+    container_name: database_debug
+    environment:
+      POSTGRES_USER: ${NUXT_DB_USER:-postgres}
+      POSTGRES_PORT: 5432
+      POSTGRES_PASSWORD: ${NUXT_DB_PASSWORD:-postgrespw}
+      POSTGRES_DB: ${NUXT_DB_DATABASE:-vidur}
+    ports:
+      - '5432:5432'
+    volumes:
+      - vidur_data_debug:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${NUXT_DB_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vidur_app_debug
+    environment:
+      PORT: ${PORT:-3001}
+      NUXT_DB_HOST: ${NUXT_DB_HOST:-db}
+      NUXT_DB_PORT: 5432
+      NUXT_DB_USER: ${NUXT_DB_USER:-postgres}
+      NUXT_DB_PASSWORD: ${NUXT_DB_PASSWORD:-postgrespw}
+      NUXT_DB_DATABASE: ${NUXT_DB_DATABASE:-vidur}
+      NUXT_BYPASS_ADMIN: ${NUXT_BYPASS_ADMIN:-false}
+      NODE_ENV: development
+    ports:
+      - '3001:3001'
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - static_data_debug:/var/lib/vidur/data
+
+volumes:
+  vidur_data_debug:
+  static_data_debug:
